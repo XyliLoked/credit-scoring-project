@@ -1,9 +1,4 @@
 # credit_scoring.py
-#!/usr/bin/env python3
-"""
-🏦 УМНЫЙ КРЕДИТНЫЙ СКОРИНГ ДЛЯ ФИНТЕХ-КОМПАНИИ
-Полный ML пайплайн для предсказания кредитного риска
-"""
 
 import pandas as pd
 import numpy as np
@@ -22,6 +17,15 @@ from datetime import datetime
 
 warnings.filterwarnings('ignore')
 
+# 🔧 ПРОВЕРКА PLOTLY
+try:
+    import plotly
+    PLOTLY_AVAILABLE = True
+    print("✅ Plotly доступен")
+except ImportError:
+    PLOTLY_AVAILABLE = False
+    print("⚠️ Plotly не установлен")
+    
 class CreditScoringModel:
     """
     Класс для построения модели кредитного скоринга
@@ -124,8 +128,8 @@ class CreditScoringModel:
         # 1. Распределение целевой переменной
         target_counts = self.df['target'].value_counts()
         axes[0,0].pie(target_counts.values,
-                     labels=[f'Хорошие ({target_counts[0]})', f'Плохие ({target_counts[1]})'],
-                     autopct='%1.1f%%', colors=['lightgreen', 'lightcoral'], startangle=90)
+                    labels=[f'Хорошие ({target_counts[0]})', f'Плохие ({target_counts[1]})'],
+                    autopct='%1.1f%%', colors=['lightgreen', 'lightcoral'], startangle=90)
         axes[0,0].set_title('Распределение классов клиентов', fontweight='bold')
         
         # 2. Распределение суммы кредита
@@ -149,7 +153,7 @@ class CreditScoringModel:
         if len(numeric_columns) > 1:
             correlation_matrix = self.df[numeric_columns].corr()
             sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', center=0, ax=axes[1,1],
-                       fmt='.2f', annot_kws={'size': 8})
+                    fmt='.2f', annot_kws={'size': 8})
             axes[1,1].set_title('Корреляционная матрица', fontweight='bold')
         
         plt.tight_layout()
@@ -294,8 +298,8 @@ class CreditScoringModel:
         cm = confusion_matrix(self.y_test, y_pred_best)
         
         sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', ax=axes[0,0],
-                   xticklabels=['Предсказан Хороший', 'Предсказан Плохой'],
-                   yticklabels=['Фактический Хороший', 'Фактический Плохой'])
+                xticklabels=['Предсказан Хороший', 'Предсказан Плохой'],
+                yticklabels=['Фактический Хороший', 'Фактический Плохой'])
         axes[0,0].set_title('Матрица ошибок', fontweight='bold')
         
         # 2. ROC-кривые
@@ -334,7 +338,7 @@ class CreditScoringModel:
         
         for bar, acc in zip(bars, accuracies):
             axes[1,1].text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.01,
-                          f'{acc:.3f}', ha='center', va='bottom', fontweight='bold')
+                        f'{acc:.3f}', ha='center', va='bottom', fontweight='bold')
         
         plt.tight_layout()
         plt.savefig('model_results.png', dpi=300, bbox_inches='tight')
@@ -375,9 +379,32 @@ class CreditScoringModel:
         print("2. Добавление мониторинга дрейфа данных")
         print("3. Интеграция с CRM системой")
         
-        print("\n" + "=" * 80)
-        print("✅ ПРОЕКТ УСПЕШНО ЗАВЕРШЕН! Готов для GitHub портфолио! 🎉")
-        print("=" * 80)
+    def create_dashboard(self, port=8050):
+        """Создание дашборда"""
+        if not hasattr(self, 'results'):
+            print("❌ Сначала обучите модели!")
+            return
+        
+        try:
+            from dashboard import CreditScoringDashboard
+            
+            print("\n🎮 СОЗДАНИЕ ПРОФЕССИОНАЛЬНОГО ДАШБОРДА...")
+            print("📊 Все графики будут в одном веб-приложении")
+            print("🌐 Откроется в одной вкладке браузера")
+            
+            dashboard = CreditScoringDashboard(
+                df=self.df,
+                results=self.results,
+                X_test=self.X_test,
+                y_test=self.y_test,
+                feature_names=self.X.columns
+            )
+            
+            dashboard.run(port=port)
+            
+        except ImportError as e:
+            print(f"❌ Не удалось создать дашборд: {e}")
+            print("💡 Установите: pip install dash")
 
 def main():
     """
